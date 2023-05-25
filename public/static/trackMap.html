@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" >
+  <title>Document</title>
+</head>
+
+<body>
+  <!-- <h3>iframe嵌入的页面</h3> -->
+  <div id="container"></div> 
+  <div id="button-div">
+    <input type="button" class="btn" value="开始回放" id="start" onclick="startAnimation()"/>
+    <input type="button" class="btn" value="暂停回放" id="pause" onclick="pauseAnimation()"/>
+  </div>
+  
+  <!-- <button onclick="iframeSendMsg()">iframe向Vue传消息</button> -->
+  
+</body>
+<script type="text/javascript">
+  window._AMapSecurityConfig = {
+      securityJsCode:'7a21e7841e7e9d3284b5cf72c49b0882',
+  }
+</script>
+<script type="text/javascript" src="https://webapi.amap.com/maps?v=1.4.15&914bc9e5440aca8fcc92bbb5f2c3a4f2"></script> 
+<script type="text/javascript">
+  var marker, lineArr = new Array(),tishiArr=new Array();
+  var deviceId = "";
+  var map = null;
+  window.onload = function() {
+    map = new AMap.Map("container", {
+      resizeEnable: true,
+      zoom: 10
+    });
+  }
+  function tomap(){
+    map.clearMap();  // 清除地图覆盖物
+    marker = new AMap.Marker({
+    map: map,
+    position: lineArr[0],
+    icon: "../img/car.png",
+    offset: new AMap.Pixel(-25, -25),
+    autoRotation: true,
+    //  angle: 90,
+    Label: deviceId
+    });
+    
+
+    // 绘制轨迹
+    var polyline = new AMap.Polyline({
+      map: map,
+      path: lineArr,
+      showDir:true,
+      strokeColor: "#28F",  //线颜色
+      // strokeOpacity: 1,     //线透明度
+      strokeWeight: 6,      //线宽
+      // strokeStyle: "solid"  //线样式
+      });
+ 
+      var passedPolyline = new AMap.Polyline({
+        map: map,
+        // path: lineArr,
+        strokeColor: "#AF5",  //线颜色
+        // strokeOpacity: 1,     //线透明度
+        strokeWeight: 6,      //线宽
+        // strokeStyle: "solid"  //线样式
+      });
+ 
+      marker.on('moving', function (e) {
+        passedPolyline.setPath(e.passedPath);
+      });
+ 
+      map.setFitView();
+    }
+    var i=0;
+    var t1;
+    var k=0;
+    // function addinfo(){
+	  //   $("#tsid").html(tishiArr[i]);
+	  //   i=i+1;
+	  //   if(i>tishiArr.length){
+    //        clearInterval(t1);
+	  //      i=0;
+    //     }
+    // }
+    //开始
+    function startAnimation () {
+    	if(lineArr.length>0){
+	    	if(k>0){
+	    		marker.resumeMove();
+	    	}else{
+		      marker.moveAlong(lineArr, 350);
+	    	}
+    	}
+    }
+    //继续
+    function pauseAnimation () {
+    	k=1;
+    	// clearInterval(t1);
+    	if(lineArr.length>0){
+	      marker.pauseMove();
+    	}
+    }
+    //
+    function resumeAnimation () {
+      marker.resumeMove();
+    }
+    //停止
+    function stopAnimation () {
+    	if(lineArr.length>0){
+	      marker.stopMove();
+    	}
+    }
+
+  // iframe向vue传递信息
+  function iframeSendMsg(){
+    window.parent.postMessage({ 
+      cmd:'skxxIframe',
+      params : {
+        info: 'iframe向Vue传递的消息',
+      } 
+    },'*');
+  };
+  // iframe获取Vue传递过来的信息
+  window.addEventListener("message", getVueMsg);
+  function getVueMsg(event){
+    const res = event.data;
+    if(res.cmd == 'skxxVue'){
+      deviceId = res.params.deviceId;
+      lineArr = res.params.trackPoints;
+      tomap();
+      document.getElementById('button-div').style.display = 'block';
+    }
+  }
+  window.addEventListener("message", getVueErrorMsg);
+  function getVueErrorMsg(event) {
+    const res = event.data;
+    if(res.cmd == 'error'){
+      map.clearMap();  // 清除地图覆盖物
+      map.setZoom(10);
+    }
+  } 
+ 
+  function triggerByVue(msg){
+    console.log(msg)
+  }
+</script>
+<style scoped>
+  #container {
+    width:100%; 
+    height: calc(100vh - 16px); 
+  } 
+  .amap-icon img {
+    width: 50px;
+  }
+  #button-div {
+    display: none;
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    padding: 3px;
+    background-color: #ffffff;
+    box-shadow: 2px 2px 4px #8b7676;
+    border-radius: 2px;
+  }
+  #button-div input {
+    margin: 5px;
+    width: 80px;
+    height: 30px;
+    border: none;
+    border-radius: 5px;
+    background-color: #0070c0;
+    color: #fff;
+    cursor: pointer;
+  }
+</style>
+</html>

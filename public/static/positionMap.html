@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" >
+  <title>Document</title>
+</head>
+
+<body>
+  <!-- <h3>iframe嵌入的页面</h3> -->
+  <div id="container"></div> 
+  <!-- <button onclick="iframeSendMsg()">iframe向Vue传消息</button> -->
+  
+</body>
+<script type="text/javascript">
+  window._AMapSecurityConfig = {
+      securityJsCode:'7a21e7841e7e9d3284b5cf72c49b0882',
+  }
+</script>
+<script type="text/javascript" src="https://webapi.amap.com/maps?v=1.4.15&914bc9e5440aca8fcc92bbb5f2c3a4f2"></script> 
+<script type="text/javascript">
+  var markerList = new Array();
+  var map = null;
+  window.onload = function() {
+    map = new AMap.Map("container", {
+      resizeEnable: true,
+      zoom: 10
+    });
+  }
+
+
+
+  // iframe向vue传递信息
+  function iframeSendMsg(){
+    window.parent.postMessage({ 
+      cmd:'skxxIframe',
+      params : {
+        info: 'iframe向Vue传递的消息',
+      } 
+    },'*');
+  };
+  // iframe获取Vue传递过来的信息
+  window.addEventListener("message", getVueMsg);
+  function getVueMsg(event){
+    const res = event.data;
+    if(res.cmd == 'skxxVue'){
+      map.clearMap();  // 清除地图覆盖物
+      let longitude = Number(res.params.longitude);
+      let latitude = Number(res.params.latitude);
+      let info = res.params.deviceId;
+      position = [longitude, latitude];
+      map.setZoomAndCenter(16, position);
+      console.log(position)
+      var marker = new AMap.Marker({
+          icon: "//a.amap.com/jsapi_demos/static/demo-center/icons/poi-marker-default.png",
+          position: position,
+          offset: new AMap.Pixel(-13, -30),
+          title: '设备'
+        });
+      // marker.setMap(map);
+      // 设置点标记的动画效果，此处为弹跳效果
+      // marker.setAnimation('AMAP_ANIMATION_BOUNCE');
+      // 设置label标签，label默认蓝框白底左上角显示，样式className为：amap-marker-label
+      marker.setLabel({
+        direction: "top",
+        offset: new window.AMap.Pixel(0, 0), //设置文本标注偏移量
+        content:"<div style='width:auto;'>设备编号：" + info + "</div>", //设置文本标注内容
+      });
+      map.add(marker)
+    }
+  }
+  window.addEventListener("message", getVueErrorMsg);
+  function getVueErrorMsg(event) {
+    const res = event.data;
+    if(res.cmd == 'error'){
+      map.clearMap();  // 清除地图覆盖物
+      map.setZoom(10);
+    }
+  }
+ 
+  function triggerByVue(msg){
+    console.log(msg)
+  }
+</script>
+<style scoped>
+  #container {
+    width:100%; 
+    height: calc(100vh - 16px); 
+  } 
+  ::v-deep .amap-marker-label {
+    border: 1px solid #dedee2;
+    padding: 5px;
+  }
+</style>
+</html>

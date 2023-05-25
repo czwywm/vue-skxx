@@ -1,0 +1,20 @@
+@font-face {
+  font-family: "Niagato";
+  src: url('./niagato/Niagato.ttf');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Hashiba";
+  src: url('./hashiba/Hashiba.ttf');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "CitypopMainDEMO";
+  src: url('./citypop_main/CitypopMainDEMO-Regular.ttf');
+  font-weight: normal;
+  font-style: normal;
+}
